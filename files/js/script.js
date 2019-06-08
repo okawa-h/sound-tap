@@ -15,14 +15,15 @@
 
 			const $target = $sounds[i];
 			const sound   = $target.dataset.sound;
-			const audioContext = new AudioContext();
+			const AudioContext = window.AudioContext || window.webkitAudioContext;
+			const context      = new AudioContext();
 
-			loadAudioBuffer($target,audioContext,SOUND_PATH + sound,($target,buffer) => {
+			loadAudioBuffer($target,context,SOUND_PATH + sound,($target,buffer) => {
 
 				const eventName = typeof $target.ontouchstart !== 'undefined' ? 'touchstart' : 'mousedown';
 				$target.addEventListener(eventName,() => {
 
-					play(audioContext,buffer);
+					play(context,buffer);
 
 				});
 
@@ -32,10 +33,10 @@
 
 	}
 
-	function play(audioContext,buffer) {
+	function play(audioContext,audioBuffer) {
 
 		const source = audioContext.createBufferSource();
-		source.buffer = buffer;
+		source.buffer = audioBuffer;
 		source.connect(audioContext.destination);
 		source.start(0);
 
@@ -43,28 +44,25 @@
 
 	function loadAudioBuffer($target,audioContext,src,callback) {
 
-		const req = new XMLHttpRequest();
-		req.responseType = 'arraybuffer';
+		const request = new XMLHttpRequest();
+		request.responseType = 'arraybuffer';
+		request.onload = () => {
 
-		req.onreadystatechange = function() {
-			if (req.readyState === 4) {
-				if (req.status === 0 || req.status === 200) {
-					audioContext.decodeAudioData(req.response,function(buffer) {
+			audioContext.decodeAudioData(request.response, (audioBuffer) => {
 
-						callback($target,buffer);
+				callback($target,audioBuffer);
 
-					});
-				}
-			}
-		};
+			});
 
-		req.open('GET',src,true);
-		req.send('');
+		}
 
-		const eventName = typeof document.ontouchend !== 'undefined' ? 'touchend' : 'mouseup';
-		document.addEventListener(eventName, initAudioContext);
+		request.open('GET', src, true);
+		request.send();
+
+		const eventName = typeof $target.ontouchend !== 'undefined' ? 'touchend' : 'mouseup';
+		$target.addEventListener(eventName, initAudioContext);
 		function initAudioContext(){
-			document.removeEventListener(eventName,initAudioContext);
+			$target.removeEventListener(eventName,initAudioContext);
 			audioContext.resume();
 		}
 
