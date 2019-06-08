@@ -17,30 +17,18 @@
 			const sound   = $target.dataset.sound;
 			const audioContext = new AudioContext();
 
-			setAllowSound(audioContext);
-
 			loadAudioBuffer($target,audioContext,SOUND_PATH + sound,($target,buffer) => {
 
-				$target.onclick = () => {
+				const eventName = typeof $target.ontouchstart !== 'undefined' ? 'touchstart' : 'mousedown';
+				$target.addEventListener(eventName,() => {
 
 					play(audioContext,buffer);
 
-				}
+				});
 
 			});
 
 		}
-
-	}
-
-	function setAllowSound(audioContext) {
-
-		const eventName = typeof document.ontouchend !== 'undefined' ? 'touchend' : 'mouseup';
-		function initAudioContext(){
-			document.removeEventListener(eventName, initAudioContext);
-			audioContext.resume();
-		}
-		document.addEventListener(eventName, initAudioContext);
 
 	}
 
@@ -72,6 +60,13 @@
 
 		req.open('GET',src,true);
 		req.send('');
+
+		const eventName = typeof document.ontouchend !== 'undefined' ? 'touchend' : 'mouseup';
+		document.addEventListener(eventName, initAudioContext);
+		function initAudioContext(){
+			document.removeEventListener(eventName,initAudioContext);
+			audioContext.resume();
+		}
 
 	}
 

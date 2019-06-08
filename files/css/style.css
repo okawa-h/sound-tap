@@ -1,5 +1,9 @@
 @import url(reset.css);
 
+html {
+	touch-action: manipulation;
+}
+
 button {
 	background-color: transparent;
 	border: none;
